@@ -146,6 +146,8 @@ const JOGGER1 = [
 ];
 const JOGGER2 = JOGGER1.slice(0, 8).concat(['....PPPP....', '...SS.SS....', '...DD.DD....', '............']);
 const JOGGER_PAL = { H: '#f054a0', S: '#e0b48a', K: '#15151a', G: '#7de832', P: '#7a3ae8', D: '#2a2a30' };
+// same body, gray flannel — the Wall Street commuter
+const SUIT_PAL = { H: '#2a2a30', S: '#e0b48a', K: '#15151a', G: '#3a3f4a', P: '#2a2f3a', D: '#15151a' };
 
 const GRUMP_MAP = [          // sits on a bench, throws leftovers
   '.....KKKK.....',

@@ -220,7 +220,132 @@ function bgBridge(cam) {
   }
 }
 
-const BGS = [bgManhattan, bgPark, bgSubway, bgBridge];
+const NEON = ['#ff3fd8', '#2ae8e8', '#ffe23a', '#3aff6a', '#b03aff'];
+
+function bgTimesSquare(cam) {
+  ctx.fillStyle = '#160b22'; ctx.fillRect(0, 0, W, H);      // light pollution: no stars
+  ctx.fillStyle = '#241333'; ctx.fillRect(0, 120, W, 88);
+  // far silhouettes
+  let off = cam * 0.25, slot = 30;
+  let s0 = Math.floor(off / slot) - 1, s1 = s0 + Math.ceil(W / slot) + 2;
+  for (let s = s0; s <= s1; s++) {
+    const hgt = 70 + hash(s * 3 + 5) * 60;
+    ctx.fillStyle = '#1d1130';
+    ctx.fillRect(Math.round(s * slot - off), 208 - hgt, slot - 3, hgt);
+  }
+  // near buildings plastered in animated billboards
+  off = cam * 0.5; slot = 60;
+  s0 = Math.floor(off / slot) - 1; s1 = s0 + Math.ceil(W / slot) + 2;
+  for (let s = s0; s <= s1; s++) {
+    const x = Math.round(s * slot - off), bw = 52;
+    const bh = 120 + hash(s * 7 + 1) * 50;
+    ctx.fillStyle = '#191223'; ctx.fillRect(x, 208 - bh, bw, bh);
+    let sy = 208 - bh + 6;
+    while (sy < 150) {
+      const col = NEON[(hash(s * 97 + sy * 13) * 5 + (tick >> 5)) % 5 | 0];
+      ctx.fillStyle = '#0a0612'; ctx.fillRect(x + 4, sy - 1, bw - 8, 18);
+      ctx.fillStyle = col; ctx.fillRect(x + 5, sy, bw - 10, 16);
+      ctx.fillStyle = '#160b22';
+      for (let ry = sy + 3; ry < sy + 15; ry += 5) ctx.fillRect(x + 8, ry, bw - 16, 2);
+      sy += 22;
+    }
+  }
+  // news zipper (screen space)
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 164, W, 12);
+  const msg = '*** RAT RACE NYC *** CHEESE FUTURES UP 300% *** BEWARE OF CATS *** CURTAIN 8PM *** ';
+  ctx.font = '8px monospace'; ctx.fillStyle = '#ffd23a'; ctx.textAlign = 'left';
+  const tw = msg.length * 5;
+  for (let xx = -(tick * 1.5 % tw); xx < W; xx += tw) ctx.fillText(msg, xx, 173);
+  // periodic billboard mega-flash
+  const fl = tick % 480;
+  if (fl < 10) { ctx.fillStyle = 'rgba(255,255,255,' + (0.16 * (10 - fl) / 10).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+}
+
+function bgWallStreet(cam) {
+  drawSky();
+  // canyon of towers, cold and tall
+  let off = cam * 0.25, slot = 26;
+  let s0 = Math.floor(off / slot) - 1, s1 = s0 + Math.ceil(W / slot) + 2;
+  for (let s = s0; s <= s1; s++) {
+    const hgt = 90 + hash(s * 3 + 9) * 60;
+    const x = Math.round(s * slot - off);
+    ctx.fillStyle = '#0e1430'; ctx.fillRect(x, 208 - hgt, slot - 3, hgt);
+    if (hash(s * 13 + 2) > 0.85) ctx.fillRect(x + 9, 208 - hgt - 14, 3, 14);
+  }
+  off = cam * 0.55; slot = 44;
+  s0 = Math.floor(off / slot) - 1; s1 = s0 + Math.ceil(W / slot) + 2;
+  for (let s = s0; s <= s1; s++) {
+    const hgt = 130 + hash(s * 5 + 7) * 60;
+    const x = Math.round(s * slot - off), bw = slot - 5;
+    const top = Math.max(8, 208 - hgt);
+    ctx.fillStyle = '#141a33'; ctx.fillRect(x, top, bw, 208 - top);
+    ctx.fillStyle = '#1d2440'; ctx.fillRect(x, top, bw, 3);
+    for (let wy = top + 7; wy < 200; wy += 9)
+      for (let wx = x + 4; wx < x + bw - 4; wx += 6) {
+        if (hash(s * 53 + wy * 17 + wx * 3) > 0.86) { ctx.fillStyle = '#8fb4d8'; ctx.fillRect(wx, wy, 2, 3); }
+      }
+  }
+  // stock ticker (screen space)
+  ctx.fillStyle = '#060a12'; ctx.fillRect(0, 84, W, 12);
+  ctx.fillStyle = '#1a2438'; ctx.fillRect(0, 84, W, 1); ctx.fillRect(0, 95, W, 1);
+  const msg = 'CHZ +4.20 ^   RAT +1.25 ^   CAT -9.99 v   BGL +0.50 ^   PGN +0.75 ^   ';
+  ctx.font = '7px monospace'; ctx.fillStyle = '#3aff6a'; ctx.textAlign = 'left';
+  const tw = msg.length * 4.5;
+  for (let xx = -(tick * 1.2 % tw); xx < W; xx += tw) ctx.fillText(msg, xx, 93);
+}
+
+function bgMarket(cam, chinatown) {
+  drawSky();
+  drawFarSkyline(cam, true);
+  const off = cam * 0.5, slot = 52;
+  const s0 = Math.floor(off / slot) - 1, s1 = s0 + Math.ceil(W / slot) + 2;
+  for (let s = s0; s <= s1; s++) {
+    const x = Math.round(s * slot - off), bw = 46;
+    const bh = 70 + hash(s * 9 + 4) * 40;
+    ctx.fillStyle = chinatown ? '#3a2030' : '#4a3026';
+    ctx.fillRect(x, 208 - bh, bw, bh);
+    ctx.fillStyle = chinatown ? '#4a2a3c' : '#5a3c30';
+    ctx.fillRect(x, 208 - bh, bw, 3);
+    // warm windows
+    for (let wy = 208 - bh + 8; wy < 150; wy += 12)
+      for (let wx = x + 5; wx < x + bw - 5; wx += 10) {
+        if (hash(s * 37 + wy * 11 + wx * 5) > 0.45) { ctx.fillStyle = '#e8c46a'; ctx.fillRect(wx, wy, 4, 5); }
+      }
+    // awning over the storefront
+    for (let i = 0; i < 6; i++) {
+      ctx.fillStyle = chinatown
+        ? (i % 2 ? '#e8b830' : '#d04028')
+        : ['#2a8a3a', '#e8e8e0', '#d04040'][i % 3];
+      ctx.fillRect(x + 2 + i * 7, 158, 7, 8);
+    }
+    ctx.fillStyle = '#1a1a20'; ctx.fillRect(x + 2, 166, 44, 1);
+    // chinatown: vertical hanging sign
+    if (chinatown && hash(s * 19 + 3) > 0.5) {
+      ctx.fillStyle = '#c03028'; ctx.fillRect(x + bw - 11, 208 - bh + 10, 8, 28);
+      ctx.fillStyle = '#e8b830';
+      for (let gy = 0; gy < 3; gy++) ctx.fillRect(x + bw - 9, 208 - bh + 14 + gy * 8, 4, 4);
+    }
+  }
+  // string of lanterns (chinatown) or fairy lights (little italy) across the top
+  for (let sx = -6; sx < W + 6; sx += 26) {
+    const dip = Math.sin((sx + cam * 0.5) / 30 + tick / 90) * 3;
+    if (chinatown) {
+      ctx.fillStyle = '#2a2118'; ctx.fillRect(sx + 2, 50 + dip, 1, 4);
+      ctx.fillStyle = '#d04028'; ctx.fillRect(sx, 54 + dip, 5, 7);
+      ctx.fillStyle = '#e8b830'; ctx.fillRect(sx + 1, 53 + dip, 3, 1); ctx.fillRect(sx + 1, 61 + dip, 3, 1);
+      ctx.fillStyle = '#ffd27a'; ctx.fillRect(sx + 2, 57 + dip, 1, 2);
+    } else {
+      ctx.fillStyle = '#3a3026'; ctx.fillRect(sx + 2, 62 + dip, 1, 3);
+      ctx.fillStyle = ((tick >> 4) + (sx >> 4)) % 3 ? '#ffd27a' : '#caa84a';
+      ctx.fillRect(sx + 1, 65 + dip, 3, 3);
+    }
+  }
+}
+
+const bgLittleItaly = cam => bgMarket(cam, false);
+const bgChinatown  = cam => bgMarket(cam, true);
+
+const BGS = [bgManhattan, bgPark, bgSubway, bgBridge, bgTimesSquare, bgWallStreet, bgLittleItaly, bgChinatown];
 
 // ---------- street decorations (visual only, placed by tile) ----------
 const DECOR = [
@@ -293,6 +418,31 @@ function drawDecorItem(t, x) {
     ctx.fillRect(x + 12 - ph, 176 + ph, 2, 4);
     ctx.fillRect(x + 26 + ph, 176 + ph, 2, 4);
     ctx.fillStyle = '#aee8f8'; ctx.fillRect(x + 19, 160 + ph, 2, 2);
+  } else if (t === 'bull') {
+    // the Charging Bull, in bronze, on its plinth
+    ctx.fillStyle = '#6a6a72'; ctx.fillRect(x - 4, 204, 42, 4);
+    ctx.fillStyle = '#8a6a3a';
+    ctx.fillRect(x + 4, 186, 24, 12);                        // body
+    ctx.fillRect(x + 24, 182, 9, 10);                        // head down, charging
+    ctx.fillRect(x + 2, 184, 6, 8);                          // haunches
+    ctx.fillRect(x + 5, 198, 3, 6); ctx.fillRect(x + 13, 198, 3, 6);
+    ctx.fillRect(x + 21, 198, 3, 6); ctx.fillRect(x + 26, 196, 3, 8);
+    ctx.fillStyle = '#c8b890';
+    ctx.fillRect(x + 31, 180, 4, 2); ctx.fillRect(x + 33, 178, 2, 3);   // horns
+    ctx.fillStyle = '#5c4a26'; ctx.fillRect(x, 182, 2, 6);   // tail
+    ctx.fillStyle = '#15151a'; ctx.fillRect(x + 28, 185, 2, 2);
+  } else if (t === 'gate') {
+    // Chinatown paifang gate spanning the street
+    ctx.fillStyle = '#c03028';
+    ctx.fillRect(x, 138, 6, 70); ctx.fillRect(x + 58, 138, 6, 70);      // pillars
+    ctx.fillRect(x - 6, 140, 76, 6);                                    // main beam
+    ctx.fillStyle = '#e8b830';
+    ctx.fillRect(x - 8, 136, 80, 4);                                    // roof tier 1
+    ctx.fillRect(x - 2, 128, 68, 4);                                    // roof tier 2
+    ctx.fillRect(x + 8, 120, 48, 4);                                    // roof tier 3
+    ctx.fillStyle = '#c03028'; ctx.fillRect(x + 24, 124, 16, 12);       // center sign
+    ctx.fillStyle = '#e8b830'; ctx.fillRect(x + 28, 127, 8, 6);
+    ctx.fillStyle = '#8a1a14'; ctx.fillRect(x, 200, 6, 8); ctx.fillRect(x + 58, 200, 6, 8);
   } else if (t === 'bksign') {
     ctx.fillStyle = '#3a3a40'; ctx.fillRect(x + 4, 162, 3, 46); ctx.fillRect(x + 93, 162, 3, 46);
     ctx.fillStyle = '#0f5126'; ctx.fillRect(x - 4, 136, 108, 28);
@@ -320,9 +470,7 @@ function drawPits(cam) {
     if (tx < 0 || tx >= LW || tileAt(tx, 13) !== '.') continue;
     const x = Math.round(tx * TILE - cam);
     const z = themeAt(tx);
-    if (z === 0) {
-      ctx.fillStyle = '#05060d'; ctx.fillRect(x, 212, TILE, 28);
-    } else if (z === 1) {
+    if (z === 1) {
       ctx.fillStyle = '#123a52'; ctx.fillRect(x, 214, TILE, 26);
       ctx.fillStyle = '#2a6b8a'; ctx.fillRect(x, 214, TILE, 2);
       if ((tx + (tick >> 4)) % 3 === 0) { ctx.fillStyle = '#3e88a8'; ctx.fillRect(x + 4, 218, 6, 1); }
@@ -330,9 +478,11 @@ function drawPits(cam) {
       ctx.fillStyle = '#08080d'; ctx.fillRect(x, 212, TILE, 28);
       ctx.fillStyle = '#4a4a52'; ctx.fillRect(x, 228, TILE, 2);
       ctx.fillStyle = '#2e2620'; ctx.fillRect(x + 3, 226, 3, 8); ctx.fillRect(x + 11, 226, 3, 8);
-    } else {
+    } else if (z === 3) {
       ctx.fillStyle = '#0e2238'; ctx.fillRect(x, 212, TILE, 28);
       if ((tx + (tick >> 3)) % 4 === 0) { ctx.fillStyle = '#1d3f5e'; ctx.fillRect(x + 2, 220, 8, 1); }
+    } else {                               // open manhole, everywhere else
+      ctx.fillStyle = '#05060d'; ctx.fillRect(x, 212, TILE, 28);
     }
   }
 }
@@ -358,6 +508,19 @@ function drawTile(t, tx, ty, cam) {
       ctx.fillRect(x + 2, y + 2, 2, 2); ctx.fillRect(x + 12, y + 2, 2, 2);
       ctx.fillRect(x + 2, y + 12, 2, 2); ctx.fillRect(x + 12, y + 12, 2, 2);
       ctx.fillStyle = '#46525f'; ctx.fillRect(x + 7, y + 4, 2, 8);
+    } else if (z === 4) {                  // Times Sq scaffolding
+      ctx.fillStyle = '#3a4250'; ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = '#8a5a32'; ctx.fillRect(x, y, TILE, 3);
+      ctx.fillStyle = '#6e4422'; ctx.fillRect(x + 5, y, 1, 3); ctx.fillRect(x + 11, y, 1, 3);
+      ctx.fillStyle = '#4a5466';
+      ctx.fillRect(x + 2, y + 11, 3, 2); ctx.fillRect(x + 6, y + 8, 3, 2); ctx.fillRect(x + 10, y + 5, 3, 2);
+    } else if (z === 5) {                  // Wall St granite
+      ctx.fillStyle = '#8a8e9a'; ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = '#a8acb8'; ctx.fillRect(x, y, TILE, 1);
+      ctx.fillStyle = '#6a6e7a';
+      ctx.fillRect(x, y + 7, TILE, 1); ctx.fillRect(x, y + 15, TILE, 1);
+      ctx.fillRect(x + ((ty % 2) ? 5 : 11), y, 1, 7);
+      ctx.fillRect(x + ((ty % 2) ? 11 : 5), y + 8, 1, 7);
     } else {
       ctx.fillStyle = '#5a3a2c'; ctx.fillRect(x, y, TILE, TILE);
       ctx.fillStyle = '#46291f';
@@ -383,6 +546,27 @@ function drawTile(t, tx, ty, cam) {
       ctx.fillStyle = '#6e4422'; ctx.fillRect(x + 3, y, 1, 6); ctx.fillRect(x + 11, y, 1, 6);
       ctx.fillStyle = '#37404e'; ctx.fillRect(x, y + 6, TILE, 10);
       ctx.fillStyle = '#222933'; ctx.fillRect(x + 1, y + 8, 2, 2); ctx.fillRect(x + 12, y + 8, 2, 2);
+    } else if (z === 4) {                  // neon-lit sidewalk
+      ctx.fillStyle = '#4a4458'; ctx.fillRect(x, y, TILE, 4);
+      ctx.fillStyle = '#2e2a38'; ctx.fillRect(x, y + 4, TILE, 12);
+      const r = hash(tx * 31 + 5);
+      if (r > 0.3) {
+        ctx.fillStyle = NEON[(r * 5) | 0];
+        ctx.fillRect(x + ((r * 12) | 0) + 1, y + 1, 2, 1);
+      }
+      ctx.fillStyle = '#5a5566'; ctx.fillRect(x + 7, y, 1, 4);
+    } else if (z === 5) {                  // granite pavement
+      ctx.fillStyle = '#b8bcc8'; ctx.fillRect(x, y, TILE, 4);
+      ctx.fillStyle = '#787e8c'; ctx.fillRect(x, y + 4, TILE, 12);
+      ctx.fillStyle = '#9aa0ac'; ctx.fillRect(x + 7, y, 1, 4);
+      ctx.fillStyle = '#5a6070'; ctx.fillRect(x + (tx % 3) * 4 + 2, y + 9, 3, 1);
+    } else if (z >= 6) {                   // cobblestones
+      ctx.fillStyle = '#3a322a'; ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = '#74634f';
+      ctx.fillRect(x + 1, y + 1, 6, 5); ctx.fillRect(x + 9, y + 1, 6, 5);
+      ctx.fillRect(x, y + 8, 3, 5); ctx.fillRect(x + 5, y + 8, 6, 5); ctx.fillRect(x + 13, y + 8, 3, 5);
+      ctx.fillStyle = '#8a7860';
+      ctx.fillRect(x + 1, y + 1, 6, 1); ctx.fillRect(x + 9, y + 1, 6, 1); ctx.fillRect(x + 5, y + 8, 6, 1);
     } else {
       ctx.fillStyle = '#c2c2c8'; ctx.fillRect(x, y, TILE, 4);
       ctx.fillStyle = '#74747c'; ctx.fillRect(x, y + 4, TILE, 12);
@@ -394,6 +578,18 @@ function drawTile(t, tx, ty, cam) {
       ctx.fillStyle = '#5a3a22'; ctx.fillRect(x, y + 2, TILE, 4);
       ctx.fillStyle = '#2a6b3a'; ctx.fillRect(x + 1, y - 1, 6, 3); ctx.fillRect(x + 9, y - 2, 6, 4);
       ctx.fillStyle = '#1d4d2a'; ctx.fillRect(x + 5, y, 5, 2);
+    } else if (z === 4) {                  // scaffold plank
+      ctx.fillStyle = '#8a5a32'; ctx.fillRect(x, y, TILE, 4);
+      ctx.fillStyle = '#6e4422'; ctx.fillRect(x + 4, y, 1, 4); ctx.fillRect(x + 11, y, 1, 4);
+      ctx.fillStyle = '#3c4350'; ctx.fillRect(x, y + 4, TILE, 1);
+    } else if (z >= 6) {                   // lantern line: plank with lanterns hanging under
+      ctx.fillStyle = '#5a3a22'; ctx.fillRect(x, y, TILE, 2);
+      ctx.fillStyle = '#2a2118'; ctx.fillRect(x + 4, y + 2, 1, 2); ctx.fillRect(x + 11, y + 2, 1, 2);
+      for (const lx of [2, 9]) {
+        ctx.fillStyle = '#d04028'; ctx.fillRect(x + lx, y + 4, 5, 6);
+        ctx.fillStyle = '#e8b830'; ctx.fillRect(x + lx + 1, y + 3, 3, 1); ctx.fillRect(x + lx + 1, y + 10, 3, 1);
+        ctx.fillStyle = '#ffd27a'; ctx.fillRect(x + lx + 2, y + 6, 1, 2);
+      }
     } else {
       ctx.fillStyle = '#3c4350'; ctx.fillRect(x, y, TILE, 5);
       ctx.fillStyle = '#262b34'; ctx.fillRect(x + 2, y + 1, 2, 2); ctx.fillRect(x + 12, y + 1, 2, 2);

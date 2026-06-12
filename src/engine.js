@@ -96,7 +96,7 @@ function buildLevelFrom(def) {
     tourist: tx => tourists.push(newTourist(tx)),
     grump:   tx => grumps.push(newGrump(tx)),
     cup:     tx => cups.push(newCup(tx)),
-    jogger:  (tx, dir, every) => joggerSpawns.push({ x: tx * TILE, dir, every, t: 90 }),
+    jogger:  (tx, dir, every, suit) => joggerSpawns.push({ x: tx * TILE, dir, every, suit: !!suit, t: 90 }),
     label:   (tx, text) => labels.push({ x: tx * TILE, text }),
   };
   def.build(api);
@@ -349,6 +349,22 @@ function update() {
 // ---------- rendering ----------
 function drawGoal(cam) {
   if (!goalX) return;
+  if (level.goalType === 'subway') {     // mid-game levels: duck into the subway to ride on
+    const x = Math.round(goalX * TILE - cam), y = 8 * TILE;
+    if (x < -64 || x > W) return;
+    ctx.fillStyle = '#0a0a12'; ctx.fillRect(x + 4, y + 16, 40, 64);
+    ctx.fillStyle = '#3a3a44';
+    for (let i = 0; i < 4; i++) ctx.fillRect(x + 8 + i * 4, y + 28 + i * 12, 32 - i * 8, 4);
+    ctx.fillStyle = '#1f7a3a';
+    ctx.fillRect(x, y + 8, 5, 72); ctx.fillRect(x + 43, y + 8, 5, 72);
+    ctx.fillRect(x, y + 8, 48, 4);
+    ctx.fillStyle = '#0f5126'; ctx.fillRect(x - 2, y - 6, 52, 12);
+    ctx.fillStyle = '#1f7a3a'; ctx.fillRect(x - 1, y - 5, 50, 10);
+    ctx.fillStyle = '#fff'; ctx.font = '7px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('SUBWAY', x + 24, y + 2);
+    ctx.textAlign = 'left';
+    return;
+  }
   const x = Math.round(goalX * TILE - cam), y = 10 * TILE;
   if (x < -80 || x > W) return;
   ctx.fillStyle = '#5a3a2c'; ctx.fillRect(x - 8, y - 40, 64, 88);

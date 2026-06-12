@@ -68,6 +68,21 @@ const SONGS = [
     bass: [36,0,0,0,36,0,0,0, 43,0,0,0,43,0,0,0, 45,0,0,0,45,0,0,0, 41,0,0,0,41,0,0,0],
     mel:  [64,0,0,0,67,0,0,0, 71,0,0,0,67,0,0,0, 72,0,0,0,69,0,0,0, 65,0,67,0,69,0,72,0],
   },
+  { // 4 TIMES SQUARE — neon electro-swing
+    bpm: 150, drums: true,
+    bass: [36,0,48,0,43,0,46,0, 41,0,53,0,48,0,46,0, 43,0,55,0,50,0,47,0, 48,46,43,41,40,38,36,0],
+    mel:  [72,0,75,72,0,74,0,72, 0,69,0,72,0,0,67,0, 71,0,74,71,0,72,0,69, 0,67,0,69,71,0,0,0],
+  },
+  { // 5 LITTLE ITALY — tarantella (6/8, 24-step loop)
+    bpm: 168, drums: false, len: 24,
+    bass: [45,0,0,52,0,0, 45,0,0,52,0,0, 43,0,0,50,0,0, 45,0,0,52,0,0],
+    mel:  [69,71,72,74,72,71, 69,0,76,76,0,74, 72,74,72,71,69,68, 69,0,0,0,0,0],
+  },
+  { // 6 CHINATOWN — pentatonic lanterns
+    bpm: 112, drums: true,
+    bass: [38,0,0,0,45,0,0,0, 38,0,0,0,45,0,0,0, 36,0,0,0,43,0,0,0, 38,0,0,0,45,0,0,0],
+    mel:  [74,0,76,0,74,0,71,0, 69,0,71,0,74,0,0,0, 76,0,78,0,81,0,78,0, 76,0,74,0,71,0,0,0],
+  },
 ];
 
 let musicOn = true, nextStep = 0, stepIdx = 0;
@@ -79,9 +94,10 @@ function tickMusic(songIdx) {
   if (nextStep === 0) { nextStep = AC.currentTime + 0.1; stepIdx = 0; }
   const song = SONGS[songIdx] || SONGS[0];
   const stepDur = 60 / song.bpm / 2;
+  const len = song.len || 32;
   while (nextStep < AC.currentTime + 0.15) {
     const t = Math.max(0, nextStep - AC.currentTime);
-    const b = song.bass[stepIdx], m = song.mel[stepIdx];
+    const b = song.bass[stepIdx % len], m = song.mel[stepIdx % len];
     if (b) tone(N(b), stepDur * 1.7, 'triangle', 0.045, null, t);
     if (m) tone(N(m), stepDur * 0.9, 'square', 0.028, null, t);
     if (song.drums) {
@@ -89,6 +105,6 @@ function tickMusic(songIdx) {
       if (stepIdx % 4 === 2) tone(6500, 0.03, 'square', 0.012, null, t); // hi-hat
     }
     nextStep += stepDur;
-    stepIdx = (stepIdx + 1) % 32;
+    stepIdx = (stepIdx + 1) % len;
   }
 }

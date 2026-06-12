@@ -138,8 +138,8 @@ function drawTourist(t, cam) {
 }
 
 // ---------- joggers (fast lane hazard, spawned on a timer) ----------
-function newJogger(x, dir) {
-  return { x, y: 13 * TILE - 12, w: 10, h: 12, vx: dir * 1.25, vy: 0, dir, squash: 0, stun: 0, dead: false, prevB: 0, onGround: false };
+function newJogger(x, dir, suit) {
+  return { x, y: 13 * TILE - 12, w: 10, h: 12, vx: dir * 1.25, vy: 0, dir, suit: !!suit, squash: 0, stun: 0, dead: false, prevB: 0, onGround: false };
 }
 
 function updateJoggerSpawns() {
@@ -147,7 +147,7 @@ function updateJoggerSpawns() {
     s.t--;
     if (s.t <= 0) {
       s.t = s.every;
-      if (joggers.length < 6) joggers.push(newJogger(s.x, s.dir));
+      if (joggers.length < 6) joggers.push(newJogger(s.x, s.dir, s.suit));
     }
   }
 }
@@ -166,11 +166,11 @@ function drawJogger(j, cam) {
   const x = Math.round(j.x - cam) - 1, y = Math.round(j.y);
   if (x < -16 || x > W + 16) return;
   if (j.squash > 0) {
-    ctx.fillStyle = '#7de832'; ctx.fillRect(x + 1, y + 8, 10, 4);
+    ctx.fillStyle = j.suit ? '#3a3f4a' : '#7de832'; ctx.fillRect(x + 1, y + 8, 10, 4);
     return;
   }
   const map = (j.stun > 0 || (tick >> 2) % 2) ? JOGGER1 : JOGGER2;
-  drawMap(map, JOGGER_PAL, x, y, j.vx < 0);
+  drawMap(map, j.suit ? SUIT_PAL : JOGGER_PAL, x, y, j.vx < 0);
   if (j.stun > 0) drawStunStars(x + 6, y - 4);
 }
 
