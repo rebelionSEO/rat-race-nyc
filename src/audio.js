@@ -37,6 +37,10 @@ const sfx = {
   win:    () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.16, 'square', 0.08, null, i * 0.13)); },
   select: () => tone(440, 0.05, 'square', 0.05, 660),
   locked: () => tone(180, 0.12, 'square', 0.07, 120),
+  flash:  () => { tone(1400, 0.03, 'square', 0.07); tone(1000, 0.04, 'square', 0.06, null, 0.03); },
+  throwF: () => tone(260, 0.12, 'triangle', 0.08, 140),
+  splat:  () => tone(140, 0.08, 'square', 0.1, 70),
+  spit:   () => tone(380, 0.08, 'square', 0.06, 700),
 };
 
 // ---------- music ----------

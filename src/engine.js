@@ -55,6 +55,8 @@ const heldJ = () => keys['arrowup'] || keys['w'] || keys[' '];
 // ---------- level state ----------
 let level = null, levelIdx = 0, LW = 0, LH = 0, grid = null;
 let cats = [], traps = [], hydrants = [], pigeons = [], goalX = 0, cheeseTotal = 0;
+let tourists = [], grumps = [], cups = [], joggers = [], joggerSpawns = [];
+let projectiles = [], puddles = [], flashes = [], labels = [];
 
 function tileAt(tx, ty) {
   if (tx < 0 || tx >= LW) return '#';
@@ -75,6 +77,8 @@ function buildLevelFrom(def) {
   level = def; LW = def.width; LH = def.height;
   grid = Array.from({ length: LH }, () => Array(LW).fill('.'));
   cats = []; traps = []; hydrants = []; pigeons = []; goalX = 0;
+  tourists = []; grumps = []; cups = []; joggers = []; joggerSpawns = [];
+  projectiles = []; puddles = []; flashes = []; labels = [];
   const api = {
     ground: (a, b) => { for (let x = a; x <= b; x++) { grid[13][x] = '='; grid[14][x] = '#'; } },
     plat:   (a, b, y) => { for (let x = a; x <= b; x++) grid[y][x] = '-'; },
@@ -89,6 +93,11 @@ function buildLevelFrom(def) {
     hydrant: x => hydrants.push({ x: x * TILE, reached: false }),
     pigeon: (tx, ty) => pigeons.push(newPigeon(tx, ty)),
     goal:   (a, b, y0, y1) => { goalX = a; for (let y = y0; y <= y1; y++) for (let x = a; x <= b; x++) grid[y][x] = 'G'; },
+    tourist: tx => tourists.push(newTourist(tx)),
+    grump:   tx => grumps.push(newGrump(tx)),
+    cup:     tx => cups.push(newCup(tx)),
+    jogger:  (tx, dir, every) => joggerSpawns.push({ x: tx * TILE, dir, every, t: 90 }),
+    label:   (tx, text) => labels.push({ x: tx * TILE, text }),
   };
   def.build(api);
   cheeseTotal = 0;
@@ -106,7 +115,7 @@ function toast(t) { msg = t; msgT = 110; }
 function popup(x, y, txt) { floats.push({ x, y, txt, t: 50 }); }
 
 function spawnPlayer() {
-  p = { x: cp.x, y: cp.y, w: 12, h: 10, vx: 0, vy: 0, facing: 1, onGround: false, prevB: 0 };
+  p = { x: cp.x, y: cp.y, w: 12, h: 10, vx: 0, vy: 0, facing: 1, onGround: false, prevB: 0, stun: 0 };
   inv = 110; coyote = 0; jBuf = 0; prevJ = false;
 }
 
@@ -125,6 +134,11 @@ function die() {
   if (state !== 'play') return;
   state = 'dying'; deathT = 0; p.vy = -3.5; p.vx = 0;
   sfx.death();
+}
+
+function spillCup(u) {
+  // a squashed Grande dumps its entire contents — wide puddle, brief grace before it burns
+  puddles.push({ x: u.x - 14, y: u.y + u.h - 5, w: 38, h: 5, t: 220 });
 }
 
 function finishLevel() {
@@ -155,7 +169,7 @@ function update() {
     if (rightHit) { selIdx = (selIdx + 1) % STATIONS.length; sfx.select(); }
     if (enterHit) {
       const st = STATIONS[selIdx];
-      if (st.level !== undefined && st.level < save.unlocked) startLevel(st.level);
+      if (st.level !== undefined && (st.dev || st.level < save.unlocked)) startLevel(st.level);
       else { sfx.locked(); toast('UNDER CONSTRUCTION'); }
     }
     enterHit = escHit = leftHit = rightHit = false;
@@ -190,22 +204,30 @@ function update() {
 
   // ----- playing -----
   if (inv > 0) inv--;
+  for (const f of flashes) f.t--;
+  flashes = flashes.filter(f => f.t > 0);
 
-  const ACC = 0.2, MAXV = 1.7;
-  if (heldL() && !heldR()) { p.vx = Math.max(p.vx - ACC, -MAXV); p.facing = -1; }
-  else if (heldR() && !heldL()) { p.vx = Math.min(p.vx + ACC, MAXV); p.facing = 1; }
-  else p.vx *= p.onGround ? 0.78 : 0.92;
-  if (Math.abs(p.vx) < 0.05) p.vx = 0;
+  if (p.stun > 0) {
+    p.stun--;                              // dazed by a tourist photo: no control
+    p.vx *= 0.85;
+    prevJ = heldJ();
+  } else {
+    const ACC = 0.2, MAXV = 1.7;
+    if (heldL() && !heldR()) { p.vx = Math.max(p.vx - ACC, -MAXV); p.facing = -1; }
+    else if (heldR() && !heldL()) { p.vx = Math.min(p.vx + ACC, MAXV); p.facing = 1; }
+    else p.vx *= p.onGround ? 0.78 : 0.92;
+    if (Math.abs(p.vx) < 0.05) p.vx = 0;
 
-  const jNow = heldJ();
-  if (jNow && !prevJ) jBuf = 7;
-  prevJ = jNow;
-  if (p.onGround) coyote = 7; else if (coyote > 0) coyote--;
-  if (jBuf > 0) jBuf--;
-  if (jBuf > 0 && coyote > 0) {
-    p.vy = JUMP_V; coyote = 0; jBuf = 0; sfx.jump();
+    const jNow = heldJ();
+    if (jNow && !prevJ) jBuf = 7;
+    prevJ = jNow;
+    if (p.onGround) coyote = 7; else if (coyote > 0) coyote--;
+    if (jBuf > 0) jBuf--;
+    if (jBuf > 0 && coyote > 0) {
+      p.vy = JUMP_V; coyote = 0; jBuf = 0; sfx.jump();
+    }
+    if (!jNow && p.vy < -1.8) p.vy = -1.8;
   }
-  if (!jNow && p.vy < -1.8) p.vy = -1.8;
 
   moveEntX(p);
   moveEntY(p);
@@ -265,11 +287,60 @@ function update() {
       if (p.vy > 0 && p.prevB <= c.y + 5) {
         c.squash = 30; p.vy = -3.4; score += 250; sfx.stomp();
         popup(c.x, c.y, '+250');
-      } else if (inv <= 0) { die(); return; }
+      } else if (inv <= 0 && c.stun <= 0) { die(); return; }   // stunned cats are safe to touch
     }
   }
   cats = cats.filter(c => !c.dead);
   pigeons = pigeons.filter(pg => !pg.dead);
+
+  // ----- Phase 1 enemies -----
+  updateTourists();
+  updateGrumps();
+  updateCups();
+  updateJoggerSpawns();
+  updateJoggers();
+  updateProjectiles();
+
+  for (const pr of projectiles) {
+    if (pr.dead) continue;
+    if (pr.kind === 'food') {
+      // flying leftovers squash anything they hit — including other enemies
+      for (const c of cats)    if (!c.dead && !c.squash && overlap(pr, c)) { c.squash = 30; score += 150; popup(c.x, c.y, '+150'); sfx.splat(); pr.dead = true; }
+      for (const j of joggers) if (!j.dead && !j.squash && overlap(pr, j)) { j.squash = 30; score += 150; popup(j.x, j.y, '+150'); sfx.splat(); pr.dead = true; }
+      for (const u of cups)    if (!u.dead && !u.squash && overlap(pr, u)) { u.squash = 30; spillCup(u); score += 150; popup(u.x, u.y, '+150'); sfx.splat(); pr.dead = true; }
+      if (!pr.dead && inv <= 0 && overlap(pr, p)) {
+        pr.dead = true;
+        if (p.stun <= 0) { p.stun = 50; p.vx = pr.vx; popup(p.x, p.y - 6, 'OOF!'); sfx.splat(); }
+      }
+    } else if (inv <= 0 && overlap(pr, p)) {       // hot coffee
+      pr.dead = true; die(); return;
+    }
+  }
+  projectiles = projectiles.filter(q => !q.dead);
+
+  for (const pu of puddles) {
+    pu.t--;
+    if (inv <= 0 && pu.t > 0 && pu.t < 200 && overlap(p, pu)) { die(); return; }   // brief grace while spreading
+  }
+  puddles = puddles.filter(q => q.t > 0);
+
+  for (const j of joggers) {
+    if (j.dead || j.squash > 0 || j.stun > 0) continue;
+    if (overlap(p, j)) {
+      if (p.vy > 0 && p.prevB <= j.y + 5) { j.squash = 30; p.vy = -3.4; score += 250; sfx.stomp(); popup(j.x, j.y, '+250'); }
+      else if (inv <= 0) { die(); return; }
+    }
+  }
+  joggers = joggers.filter(j => !j.dead);
+
+  for (const u of cups) {
+    if (u.dead || u.squash > 0 || u.stun > 0) continue;
+    if (overlap(p, u)) {
+      if (p.vy > 0 && p.prevB <= u.y + 5) { u.squash = 30; spillCup(u); p.vy = -4.2; score += 250; sfx.stomp(); popup(u.x, u.y, '+250'); }
+      else if (inv <= 0) { die(); return; }
+    }
+  }
+  cups = cups.filter(u => !u.dead);
 
   camX = Math.max(0, Math.min(p.x + p.w / 2 - W / 2, LW * TILE - W));
   enterHit = leftHit = rightHit = false;   // don't let stray presses ghost-click the next screen
@@ -308,6 +379,7 @@ function drawPlayer(cam) {
     ctx.restore();
   } else {
     drawMap(map, RAT_PAL, x, y, p.facing < 0);
+    if (p.stun > 0) drawStunStars(x + 8, y - 3);
   }
 }
 
@@ -323,12 +395,41 @@ function drawWorld(cam) {
       const t = tileAt(tx, ty);
       if (t !== '.' && t !== 'G') drawTile(t, tx, ty, cam);
     }
+  // test-track signage
+  if (labels.length) {
+    ctx.font = '7px monospace'; ctx.textAlign = 'center';
+    for (const lb of labels) {
+      const x = Math.round(lb.x - cam);
+      if (x < -120 || x > W + 120) continue;
+      ctx.fillStyle = '#9aa3c8';
+      ctx.fillText(lb.text, x, 118);
+    }
+    ctx.textAlign = 'left';
+  }
   drawGoal(cam);
   for (const hy of hydrants) drawHydrant(hy, cam);
   for (const tr of traps) drawTrap(tr, cam);
+  for (const pu of puddles) drawPuddle(pu, cam);
+  for (const t of tourists) drawTourist(t, cam);
+  for (const g of grumps) drawGrump(g, cam);
+  for (const u of cups) drawCup(u, cam);
+  for (const j of joggers) drawJogger(j, cam);
   for (const pg of pigeons) drawPigeon(pg, cam);
   for (const c of cats) drawCat(c, cam);
+  for (const pr of projectiles) drawProjectile(pr, cam);
   drawPlayer(cam);
+  // camera flashes: expanding ring + screen blink when close
+  for (const f of flashes) {
+    const r = (16 - f.t) * 6;
+    ctx.globalAlpha = Math.max(0, f.t / 15);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(f.x - cam, f.y, r, 0, 7); ctx.stroke();
+    ctx.globalAlpha = 1;
+    if (f.t > 10 && Math.abs(f.x - (p.x + p.w / 2)) < 90) {
+      ctx.fillStyle = 'rgba(255,255,255,' + ((f.t - 10) * 0.12).toFixed(2) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
   ctx.font = '7px monospace'; ctx.textAlign = 'center';
   for (const f of floats) {
     ctx.fillStyle = f.t > 25 ? '#f6c945' : 'rgba(246,201,69,0.5)';
@@ -393,10 +494,10 @@ function renderSelect() {
   for (let i = 0; i < n; i++) {
     const sx = Math.round(x0 + (x1 - x0) * i / (n - 1));
     const st = STATIONS[i];
-    const open = st.level !== undefined && st.level < save.unlocked;
-    // station dot
+    const open = st.level !== undefined && (st.dev || st.level < save.unlocked);
+    // station dot (dev stations get a work-zone orange)
     ctx.fillStyle = '#0b1026'; ctx.fillRect(sx - 4, ly - 3, 9, 10);
-    ctx.fillStyle = open ? '#fff' : '#3a3f55';
+    ctx.fillStyle = open ? (st.dev ? '#e87a22' : '#fff') : '#3a3f55';
     ctx.fillRect(sx - 3, ly - 2, 7, 8);
     // name, alternating above/below
     ctx.font = '6px monospace'; ctx.textAlign = 'center';
@@ -409,7 +510,7 @@ function renderSelect() {
 
   // info panel for selection
   const st = STATIONS[selIdx];
-  const open = st.level !== undefined && st.level < save.unlocked;
+  const open = st.level !== undefined && (st.dev || st.level < save.unlocked);
   centerText(st.name, 72, '#fff', 'bold 14px monospace');
   if (open) {
     const b = save.best[st.level];

@@ -98,3 +98,92 @@ const BAGEL_MAP = [
   '...TTTT...',
 ];
 const BAGEL_PAL = { T: '#c98a3d', S: '#f4e6c0', D: '#9a6526' };
+
+// ---------- Phase 1 enemies ----------
+const TOURIST1 = [           // camera at chest
+  '....CCCC....',
+  '...SSSSSS...',
+  '...SKSSKS...',
+  '...SSSSSS...',
+  '..RRRRRRRR..',
+  '..RWRRRRWR..',
+  '.SSRKKKKRSS.',
+  '..RRRRRRRR..',
+  '...BBBBBB...',
+  '...BB..BB...',
+  '...SS..SS...',
+  '...DD..DD...',
+];
+const TOURIST2 = [           // camera raised — about to FLASH
+  '....CCCC....',
+  '...SKKKKS...',
+  '...SKKKKS...',
+  '...SSSSSS...',
+  '.S.RRRRRR.S.',
+  '.SRRWRRWRRS.',
+  '..RRRRRRRR..',
+  '..RRRRRRRR..',
+  '...BBBBBB...',
+  '...BB..BB...',
+  '...SS..SS...',
+  '...DD..DD...',
+];
+const TOURIST_PAL = { C: '#f0f0e2', S: '#e0b48a', K: '#15151a', R: '#d04040', W: '#ffffff', B: '#3a5a8a', D: '#2a2a30' };
+
+const JOGGER1 = [
+  '....HHHH....',
+  '..KSSSSSSK..',
+  '...SKSSKS...',
+  '...SSSSSS...',
+  '..GGGGGGGG..',
+  '.S.GGGGGG.S.',
+  '..GGGGGGGG..',
+  '...PPPPPP...',
+  '...PP..PP...',
+  '..SS....SS..',
+  '..DD....DD..',
+  '............',
+];
+const JOGGER2 = JOGGER1.slice(0, 8).concat(['....PPPP....', '...SS.SS....', '...DD.DD....', '............']);
+const JOGGER_PAL = { H: '#f054a0', S: '#e0b48a', K: '#15151a', G: '#7de832', P: '#7a3ae8', D: '#2a2a30' };
+
+const GRUMP_MAP = [          // sits on a bench, throws leftovers
+  '.....KKKK.....',
+  '.....SSSS.....',
+  '.....SKSS.....',
+  '....OOOOOO....',
+  '...OOOOOOOO...',
+  '...OOOOOOOO...',
+  '...OSOOOOOO...',
+  '....OOOOOO....',
+  '....OOOOOOO...',
+  '....OO..OOO...',
+  '....DD...DD...',
+  '..............',
+];
+const GRUMP_PAL = { K: '#2a2a30', S: '#e0b48a', O: '#5a6e3a', D: '#1a1a20' };
+
+const CUP1 = [               // Grande, a venti-sized menace (parody, no real branding)
+  '..WWWWWW..',
+  '.WWWWWWWW.',
+  '..CCCCCC..',
+  '..CKCCKC..',
+  '..CGGGGC..',
+  '..CGGGGC..',
+  '..CCCCCC..',
+  '...CCCC...',
+  '...CCCC...',
+  '..........',
+  '...K..K...',
+  '..........',
+];
+const CUP2 = CUP1.slice(0, 10).concat(['....KK....', '..........']);
+const CUP_PAL = { W: '#dde0ea', C: '#f0ead8', G: '#0f8a3a', K: '#15151a' };
+
+const FOOD_MAP = [           // airborne pizza crust
+  'YYYYYY',
+  '.YRYR.',
+  '..YY..',
+  '..Y...',
+];
+const FOOD_PAL = { Y: '#e8b820', R: '#d04040' };

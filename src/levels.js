@@ -128,6 +128,77 @@ const LEVELS = [
       L.wall(353, 359, 0);
     },
   },
+  {
+    id: 99,
+    name: 'TEST TRACK',
+    width: 190, height: 15,
+    spawnTx: 3,
+    decor: [{ t: 'cart', tx: 10 }],
+    zones: [
+      { from: 0, theme: 0, song: 2, label: 'TEST TRACK' },
+    ],
+    build(L) {
+      // intro
+      L.ground(0, 18);
+      L.label(8, 'TEST TRACK: MEET THE LOCALS');
+      L.cheeseRow(5, 7, 11);
+
+      // 1 — tourists (flash stuns you AND nearby cats)
+      L.ground(19, 40);
+      L.label(26, 'TOURISTS: DODGE THE FLASH...');
+      L.label(36, '...OR BAIT CATS INTO PHOTOS');
+      L.tourist(26);
+      L.cat(31, 13, 0);
+      L.tourist(35);
+      L.cheeseRow(29, 33, 10);
+      L.hydrant(40);
+
+      // 2 — joggers (fast, on a timer, watch the lane)
+      L.ground(41, 70);
+      L.label(47, 'JOGGERS: FAST AND OBLIVIOUS');
+      L.jogger(68, -1, 300);
+      L.plat(52, 54, 10); L.cheeseRow(52, 54, 9);
+      L.plat(60, 62, 10); L.cheeseRow(60, 62, 9);
+      L.hydrant(70);
+
+      // 3 — Bench Grump (weave through the food arcs)
+      L.ground(71, 100);
+      L.label(78, 'BENCH GRUMP: WEAVE THE LEFTOVERS');
+      L.grump(84);
+      L.cat(92, 13, 0);
+      L.label(92, 'HIS FOOD SQUASHES CATS TOO');
+      L.cheeseRow(88, 90, 11);
+      L.hydrant(100);
+
+      // 4 — Grande (coffee drops burn, puddles linger)
+      L.ground(101, 130);
+      L.label(108, 'GRANDE: HOT COFFEE, HOT FLOOR');
+      L.cup(112);
+      L.plat(116, 118, 10); L.cheeseRow(116, 118, 9);
+      L.cup(122);
+      L.label(122, 'STOMPING SPILLS THE WHOLE CUP');
+      L.hydrant(130);
+
+      // 5 — rush hour: everything at once
+      L.ground(131, 162);
+      L.label(140, 'RUSH HOUR!');
+      L.tourist(138);
+      L.cat(142, 13, 1);
+      L.grump(148);
+      L.cup(154);
+      L.jogger(160, -1, 280);
+      L.cheeseRow(144, 146, 10);
+      L.plat(150, 152, 10); L.cheeseRow(150, 152, 9);
+
+      // home stretch
+      L.ground(163, 189);
+      L.label(168, 'NICE WORK, RAT');
+      L.cheeseRow(166, 170, 11);
+      L.bagel(172, 11);
+      L.goal(176, 178, 10, 12);
+      L.wall(182, 189, 0);
+    },
+  },
 ];
 
 // Subway-map stations for the level select screen.
@@ -144,4 +215,5 @@ const STATIONS = [
   { name: 'THE BRONX' },
   { name: 'SI FERRY' },
   { name: 'DUMBO' },
+  { name: 'TEST TRACK', level: 1, dev: true },
 ];
