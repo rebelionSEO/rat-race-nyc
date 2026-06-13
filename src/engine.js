@@ -45,6 +45,11 @@ addEventListener('keydown', e => {
   if ((e.key === 'm' || e.key === 'M') && !e.repeat) {
     toast(toggleMusic() ? 'MUSIC ON' : 'MUSIC OFF');
   }
+  if ((e.key === 'u' || e.key === 'U') && !e.repeat && state === 'select') {
+    save.unlocked = LEVELS.length;       // dev cheat: open every station
+    persistSave();
+    sfx.life(); toast('ALL STATIONS UNLOCKED (DEV)');
+  }
   ensureAudio();
 });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
