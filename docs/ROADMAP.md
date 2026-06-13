@@ -191,3 +191,29 @@ pushable after every single one. We can stop, reorder, or trim anytime — e.g.,
 - **Two-player rat race** (same keyboard) — big effort, big fun
 - **NYC sounds layer:** distant sirens, steam vents, "stand clear of the closing doors"
 - **Halal cart power-up, dollar slice health system** — more NYC food lore
+
+## 9. Art 2.0 — rubber-hose reskin (parked until the 8-bit game is FINISHED)
+
+Goal: restyle the whole game in 1930s rubber-hose cartoon style (Cuphead-inspired, never
+copied) using AI-generated sprite sheets. A proof-of-concept still already exists (generated
+2026-06-12, looks right). Decision: gameplay gets finished in 8-bit first — iterating level
+design is ~100x cheaper when art is text — then this becomes a pure reskin phase, since
+sprites/themes already live in their own modules.
+
+**Pipeline when we get there:**
+1. Character sheets per actor (rat, 3 cats, tourist, jogger, grump, cup, pigeon, boss) —
+   model/turnaround prompts first, then poses
+2. Short animation cycles only (2–4 frames, exaggerated — the 1930s style forgives it);
+   squash/stretch/rotation done in code, not in frames
+3. Cut to transparent PNGs, align frames, pack sprite sheets
+4. Swap `sprites.js` drawMap calls for a drawImage-based sprite renderer; themes get painted
+   backgrounds
+5. Budget reality: $50–500 in image-API generations (with retries), 1–2 phases of integration
+   work, significant curation hours; game size grows from ~100KB to tens of MB
+
+**Hard rules:**
+- Trademark scrub is mandatory in every art prompt — the PoC image contains real Starbucks
+  logos, a Yankees cap, and the I❤NY mark; none of that can ship. Parody equivalents only
+  (green mermaid-ish cup, plain "NY" cap, "I♥RATS" shirt)
+- Animation-consistency is the make-or-break risk — prototype ONE character (the rat) end to
+  end before committing to the rest
