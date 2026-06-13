@@ -141,11 +141,14 @@ function spillCup(u) {
   puddles.push({ x: u.x - 14, y: u.y + u.h - 5, w: 38, h: 5, t: 220 });
 }
 
+let nextIdx = -1;   // level to ride to after a win (-1: back to the map)
+
 function finishLevel() {
   const b = save.best[levelIdx] || { score: 0, cheese: 0 };
   save.best[levelIdx] = { score: Math.max(b.score, score), cheese: Math.max(b.cheese, cheeseN) };
   save.unlocked = Math.max(save.unlocked, Math.min(levelIdx + 2, LEVELS.length));
   persistSave();
+  nextIdx = (LEVELS[levelIdx + 1] && !LEVELS[levelIdx + 1].dev) ? levelIdx + 1 : -1;
   state = 'win'; sfx.win();
 }
 
@@ -176,8 +179,18 @@ function update() {
     return;
   }
 
-  if (state === 'gameover' || state === 'win') {
+  if (state === 'gameover') {
     if (enterHit) { enterHit = false; state = 'select'; }
+    enterHit = escHit = leftHit = rightHit = false;
+    return;
+  }
+
+  if (state === 'win') {
+    if (enterHit) {                       // ride to the next stop, or back to the map
+      enterHit = false;
+      if (nextIdx >= 0) startLevel(nextIdx); else state = 'select';
+    }
+    if (escHit) { escHit = false; state = 'select'; }
     enterHit = escHit = leftHit = rightHit = false;
     return;
   }
@@ -555,11 +568,16 @@ function render() {
     if ((tick >> 5) % 2) centerText('PRESS ENTER FOR THE MAP', 164, '#fff');
   } else if (state === 'win') {
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 0, W, H);
-    centerText('HOME SWEET HOME!', 92, '#f6c945', 'bold 18px monospace');
-    drawMap(RAT_RUN1, RAT_PAL, W / 2 - 16, 104, false, 2);
-    centerText('CHEESE: ' + cheeseN + ' / ' + cheeseTotal, 138, '#cfd6ff');
-    centerText('SCORE: ' + score, 150, '#cfd6ff');
-    if ((tick >> 5) % 2) centerText('PRESS ENTER FOR THE MAP', 174, '#fff');
+    centerText(level.goalType === 'home' ? 'HOME SWEET HOME!' : 'STATION CLEAR!', 88, '#f6c945', 'bold 18px monospace');
+    drawMap(RAT_RUN1, RAT_PAL, W / 2 - 16, 100, false, 2);
+    centerText('CHEESE: ' + cheeseN + ' / ' + cheeseTotal, 134, '#cfd6ff');
+    centerText('SCORE: ' + score, 146, '#cfd6ff');
+    if (nextIdx >= 0) {
+      if ((tick >> 5) % 2) centerText('NEXT STOP: ' + LEVELS[nextIdx].name + ' — PRESS ENTER', 170, '#fff');
+      centerText('ESC FOR THE MAP', 184, '#596080', '7px monospace');
+    } else {
+      if ((tick >> 5) % 2) centerText('END OF THE LINE — PRESS ENTER FOR THE MAP', 170, '#fff');
+    }
   }
 }
 

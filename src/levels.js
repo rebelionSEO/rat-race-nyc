@@ -27,28 +27,26 @@
 //          4 times square 5 wall street 6 little italy 7 chinatown
 //  Songs:  0 swing 1 stroll 2 funk 3 anthem
 //          4 electro-swing 5 tarantella 6 pentatonic
-//  Unlock order = array order (test track last, always open as dev).
+//  Unlock chain = array order. Winning rides straight to the
+//  next level. Test track is dev-only, outside the chain.
 // ============================================================
 
 const LEVELS = [
   {
     id: 1,
-    name: 'NYC RUN',
-    width: 360, height: 15,
+    name: 'MANHATTAN',
+    width: 210, height: 15,
     spawnTx: 3,
-    goalType: 'home',
+    goalType: 'subway',
+    decor: [{ t: 'cart', tx: 14 }, { t: 'taxi', tx: 20 }, { t: 'stsign', tx: 68 }, { t: 'pizza', tx: 74 }, { t: 'taxi', tx: 130 }],
     zones: [
-      { from: 0,   theme: 0, song: 0, label: 'MANHATTAN' },
-      { from: 90,  theme: 1, song: 1, label: 'CENTRAL PARK' },
-      { from: 180, theme: 2, song: 2, label: 'SUBWAY' },
-      { from: 270, theme: 3, song: 3, label: 'BROOKLYN BRIDGE' },
+      { from: 0, theme: 0, song: 0, label: 'MANHATTAN' },
     ],
     build(L) {
-      // ===== MANHATTAN (0-89) =====
       L.ground(0, 23);
       L.cheese(8, 11); L.cheese(9, 10); L.cheese(10, 10); L.cheese(11, 11);
       L.cat(18, 13, 0);
-      // gap 24-26: open manhole
+      // open manhole 24-26
       L.ground(27, 58);
       L.trap(31); L.cheese(31, 11);
       L.wall(35, 37, 11); L.cheeseRow(35, 37, 10);          // dumpster
@@ -58,7 +56,7 @@ const LEVELS = [
       L.plat(50, 53, 9);  L.cheese(50, 8); L.cheese(53, 8); L.cat(51, 9, 1);
       L.plat(55, 58, 7);  L.cheeseRow(56, 57, 6);
       L.wall(59, 60, 6);                                    // climb-over wall
-      L.ground(61, 88);
+      L.ground(61, 120);
       L.hydrant(63);
       L.poison(64, 65); L.cheeseRow(64, 67, 10);
       L.bagel(69, 11);
@@ -66,78 +64,28 @@ const LEVELS = [
       L.cat(76, 13, 1);
       L.poison(80, 81);
       L.cheeseRow(84, 86, 11);
-
-      // ===== CENTRAL PARK (90-179) =====
-      L.ground(89, 117);
-      L.hydrant(91);
-      L.plat(96, 99, 11); L.cheese(97, 10); L.cheese(98, 10); // tree branches
-      L.pigeon(100, 8);
-      L.plat(101, 104, 9); L.cheese(102, 8); L.cheese(103, 8);
-      L.cat(110, 13, 0);
-      L.cheeseRow(113, 115, 11);
-      // pond 118-121
-      L.ground(122, 159);
-      L.trap(126); L.cheese(126, 11);
-      L.bagel(128, 10);
-      L.cat(130, 13, 0);
-      L.cat(138, 13, 1);
-      L.poison(142, 143); L.cheeseRow(142, 144, 10);
-      L.plat(148, 151, 11); L.cheese(149, 10); L.cheese(150, 10);
-      L.pigeon(152, 7);
-      L.plat(153, 156, 9); L.cheese(154, 8); L.cheese(155, 8);
-      // pond 160-163 with lily pad
-      L.plat(161, 162, 11);
-      L.ground(164, 179);
-      L.cat(170, 13, 2);
-      L.cheeseRow(172, 175, 11);
-
-      // ===== SUBWAY (180-269) =====
-      L.roof(180, 269);
-      L.ground(180, 209);
-      L.hydrant(182);
-      L.cheeseRow(186, 189, 11);
-      L.cat(195, 13, 0);
-      L.cheese(200, 11); L.cheese(203, 11);
-      // track pit 210-214 with girder
-      L.plat(211, 213, 11);
-      L.cheese(212, 10);
-      L.ground(215, 239);
-      L.trap(220); L.trap(224);
-      L.cheese(222, 10);
-      L.cat(230, 13, 1);
-      L.cat(235, 13, 2);
-      L.cheeseRow(227, 228, 11);
-      // track pit 240-243 with girder
-      L.plat(241, 242, 11);
-      L.ground(244, 269);
-      L.poison(246, 247); L.cheeseRow(246, 248, 10);
-      L.bagel(252, 10);
-      L.cat(255, 13, 0);
-      L.pigeon(260, 7);
-      L.cheeseRow(262, 264, 11);
-
-      // ===== BROOKLYN BRIDGE (270-359) =====
-      L.ground(270, 285);
-      L.hydrant(272);
-      L.cheeseRow(276, 279, 11);
-      // deck gap 286-288
-      L.ground(289, 301);
-      L.cat(295, 13, 2);
-      L.pigeon(300, 8);
-      // deck gap 302-305 with cable platform
-      L.plat(303, 304, 10); L.cheese(303, 9); L.cheese(304, 9);
-      L.ground(306, 317);
-      L.cat(310, 13, 1);
-      L.cheeseRow(312, 314, 11);
-      // deck gap 318-320
-      L.ground(321, 355);
-      L.trap(325); L.cheese(325, 11);
-      L.cat(330, 13, 2);
-      L.pigeon(335, 7);
-      L.bagel(340, 10);
-      L.cheeseRow(343, 346, 11);
-      L.goal(348, 350, 10, 12);
-      L.wall(353, 359, 0);
+      // stoop block
+      L.grump(94);                                          // guy on his stoop, defending it
+      L.plat(100, 102, 10); L.cheeseRow(100, 102, 9);
+      L.plat(106, 108, 8);  L.cheeseRow(106, 108, 7);
+      L.cat(114, 13, 0);
+      L.hydrant(118);
+      // manhole 121-123
+      L.ground(124, 160);
+      L.tourist(128);                                       // selfie alley
+      L.trap(134); L.cheese(134, 11);
+      L.wall(140, 142, 11); L.cheeseRow(140, 142, 10);      // dumpster
+      L.cat(148, 13, 1);
+      L.pigeon(152, 8);
+      L.hydrant(156);
+      L.bagel(158, 11);
+      L.ground(161, 209);
+      L.cat(168, 13, 1);
+      L.cat(176, 13, 2);
+      L.poison(184, 185); L.cheeseRow(184, 185, 10);
+      L.cheeseRow(189, 192, 11);
+      L.goal(196, 198, 9, 12);
+      L.wall(204, 209, 0);
     },
   },
 
@@ -341,8 +289,183 @@ const LEVELS = [
   },
 
   {
+    id: 5,
+    name: 'CENTRAL PARK',
+    width: 210, height: 15,
+    spawnTx: 3,
+    goalType: 'subway',
+    decor: [{ t: 'parksign', tx: 4 }, { t: 'fountain', tx: 104 }],
+    zones: [
+      { from: 0, theme: 1, song: 1, label: 'CENTRAL PARK' },
+    ],
+    build(L) {
+      L.ground(0, 28);
+      L.plat(7, 10, 11); L.cheese(8, 10); L.cheese(9, 10);   // tree branches
+      L.pigeon(11, 8);
+      L.plat(12, 15, 9); L.cheese(13, 8); L.cheese(14, 8);
+      L.cat(21, 13, 0);
+      L.cheeseRow(24, 26, 11);
+      // pond 29-32
+      L.ground(33, 70);
+      L.trap(37); L.cheese(37, 11);
+      L.bagel(39, 10);
+      L.cat(41, 13, 0);
+      L.cat(49, 13, 1);
+      L.poison(53, 54); L.cheeseRow(53, 55, 10);
+      L.plat(59, 62, 11); L.cheese(60, 10); L.cheese(61, 10);
+      L.pigeon(63, 7);
+      L.plat(64, 67, 9); L.cheese(65, 8); L.cheese(66, 8);
+      L.hydrant(69);
+      // pond 71-74 with lily pad
+      L.plat(72, 73, 11);
+      L.ground(75, 120);
+      L.cat(81, 13, 2);
+      L.cheeseRow(83, 86, 11);
+      L.grump(96);                                          // his bench, his park
+      L.tourist(110);                                       // park photographer
+      L.cheeseRow(106, 108, 11);
+      L.hydrant(118);
+      // pond 121-124 with lily pad
+      L.plat(122, 123, 11);
+      L.ground(125, 165);
+      L.plat(128, 131, 11); L.cheeseRow(128, 131, 10);      // branch ladder
+      L.plat(133, 136, 9);  L.cheeseRow(133, 136, 8);
+      L.plat(138, 141, 7);  L.cheeseRow(138, 141, 6);
+      L.bagel(140, 5);
+      L.cat(146, 13, 1);
+      L.trap(152); L.cheese(152, 11);
+      L.pigeon(156, 8);
+      L.hydrant(160);
+      L.ground(166, 209);
+      L.cat(172, 13, 1);
+      L.poison(178, 179); L.cheeseRow(178, 179, 10);
+      L.cat(184, 13, 2);
+      L.cheeseRow(190, 194, 11);
+      L.goal(198, 200, 9, 12);
+      L.wall(204, 209, 0);
+    },
+  },
+
+  {
+    id: 6,
+    name: 'THE SUBWAY',
+    width: 210, height: 15,
+    spawnTx: 3,
+    goalType: 'subway',
+    zones: [
+      { from: 0, theme: 2, song: 2, label: 'THE SUBWAY' },
+    ],
+    build(L) {
+      L.roof(0, 209);
+      L.ground(0, 30);
+      L.cheeseRow(8, 11, 11);
+      L.cat(16, 13, 0);
+      L.cheese(22, 11); L.cheese(25, 11);
+      // track pit 31-35
+      L.plat(32, 34, 11); L.cheese(33, 10);
+      L.ground(36, 60);
+      L.trap(40); L.trap(44);
+      L.cheese(42, 10);
+      L.cat(50, 13, 1);
+      L.cup(54);                                      // platform coffee spill
+      L.hydrant(58);
+      // track pit 61-64
+      L.plat(62, 63, 11);
+      L.ground(65, 95);
+      L.poison(68, 69); L.cheeseRow(68, 70, 10);
+      L.bagel(73, 10);
+      L.cat(77, 13, 0);
+      L.plat(82, 84, 10); L.cheeseRow(82, 84, 9);
+      L.hydrant(90);
+      L.jogger(92, -1, 300, true);                    // late commuter
+      // track pit 96-99
+      L.plat(97, 98, 11);
+      L.ground(100, 135);
+      L.cat(106, 13, 1);
+      L.cat(112, 13, 2);
+      L.trap(118); L.cheese(118, 11);
+      L.trap(122); L.cheese(122, 11);
+      L.tourist(128);                                 // lost, photographing the map
+      L.hydrant(132);
+      // track pit 136-139
+      L.plat(137, 138, 11);
+      L.ground(140, 175);
+      L.cup(146);
+      L.cat(152, 13, 2);
+      L.pigeon(158, 7);
+      L.cheeseRow(162, 165, 11);
+      L.grump(168);                                   // bench at the end of the platform
+      L.hydrant(172);
+      L.ground(176, 209);
+      L.cat(182, 13, 1);
+      L.cheeseRow(186, 189, 11);
+      L.goal(196, 198, 9, 12);
+      L.wall(204, 209, 0);
+    },
+  },
+
+  {
+    id: 7,
+    name: 'BROOKLYN BRIDGE',
+    width: 210, height: 15,
+    spawnTx: 3,
+    goalType: 'home',
+    decor: [{ t: 'bksign', tx: 186 }],
+    zones: [
+      { from: 0, theme: 3, song: 3, label: 'BROOKLYN BRIDGE' },
+    ],
+    build(L) {
+      L.ground(0, 15);
+      L.cheeseRow(6, 9, 11);
+      // deck gap 16-18
+      L.ground(19, 31);
+      L.cat(25, 13, 2);
+      L.pigeon(30, 8);
+      // deck gap 32-35 with cable platform
+      L.plat(33, 34, 10); L.cheese(33, 9); L.cheese(34, 9);
+      L.ground(36, 47);
+      L.cat(40, 13, 1);
+      L.cheeseRow(43, 45, 11);
+      // deck gap 48-50
+      L.ground(51, 85);
+      L.trap(55); L.cheese(55, 11);
+      L.cat(60, 13, 2);
+      L.pigeon(65, 7);
+      L.bagel(70, 10);
+      L.cheeseRow(73, 76, 11);
+      L.hydrant(80);
+      // deck gap 86-89 with cable platform
+      L.plat(87, 88, 11);
+      L.ground(90, 125);
+      L.tourist(94);                                  // bridge selfies
+      L.cat(100, 13, 1);
+      L.trap(106); L.cheese(106, 11);
+      L.plat(112, 114, 10); L.cheeseRow(112, 114, 9);
+      L.hydrant(120);
+      // deck gap 126-128
+      L.ground(129, 165);
+      L.cat(134, 13, 2);
+      L.cat(142, 13, 1);
+      L.grump(148);                                   // promenade bench
+      L.pigeon(154, 8);
+      L.cheeseRow(158, 161, 11);
+      L.hydrant(162);
+      // deck gap 166-169 with cable platform
+      L.plat(167, 168, 10); L.cheese(167, 9); L.cheese(168, 9);
+      L.ground(170, 209);
+      L.cat(176, 13, 2);
+      L.cheeseRow(180, 183, 11);
+      L.cat(186, 13, 2);                              // bombay finale
+      L.bagel(192, 11);
+      L.goal(198, 200, 10, 12);
+      L.wall(204, 209, 0);
+    },
+  },
+
+  {
     id: 99,
     name: 'TEST TRACK',
+    dev: true,
     width: 190, height: 15,
     spawnTx: 3,
     goalType: 'subway',
@@ -418,15 +541,16 @@ const LEVELS = [
 // `level` points into LEVELS; stations without it are future
 // roadmap levels shown as under construction.
 const STATIONS = [
-  { name: 'NYC RUN',      level: 0 },
+  { name: 'MANHATTAN',    level: 0 },
   { name: 'TIMES SQ',     level: 1 },
   { name: 'WALL ST',      level: 2 },
   { name: 'CHINATOWN',    level: 3 },
-  { name: 'CENTRAL PARK' },
-  { name: 'SUBWAY' },
+  { name: 'CENTRAL PARK', level: 4 },
+  { name: 'SUBWAY',       level: 5 },
+  { name: 'BKLYN BRIDGE', level: 6 },
   { name: 'ASTORIA' },
   { name: 'THE BRONX' },
   { name: 'SI FERRY' },
   { name: 'DUMBO' },
-  { name: 'TEST TRACK',   level: 4, dev: true },
+  { name: 'TEST TRACK',   level: 7, dev: true },
 ];

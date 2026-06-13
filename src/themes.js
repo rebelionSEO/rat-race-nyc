@@ -152,18 +152,22 @@ function bgSubway(cam) {
   }
 }
 
-// Brooklyn Bridge cable math (world coords)
-const T1 = 4648, T2 = 5320;           // tower x positions (px)
-function bridgeCableY(wx) {
-  if (wx < T1) {
-    const t = Math.max(0, Math.min(1, (wx - 4320) / (T1 - 4320)));
+// Brooklyn Bridge cable math — relative to level width, so any
+// bridge-themed level gets correct towers and cables
+function bridgeGeom() {
+  const L = LW * TILE;
+  return { a: L * 0.06, t1: L * 0.33, t2: L * 0.66, b: L * 0.96 };
+}
+function bridgeCableY(wx, g) {
+  if (wx < g.t1) {
+    const t = Math.max(0, Math.min(1, (wx - g.a) / (g.t1 - g.a)));
     return 196 - t * 156;
   }
-  if (wx > T2) {
-    const t = Math.max(0, Math.min(1, (wx - T2) / (5660 - T2)));
+  if (wx > g.t2) {
+    const t = Math.max(0, Math.min(1, (wx - g.t2) / (g.b - g.t2)));
     return 40 + t * 156;
   }
-  const mid = (T1 + T2) / 2, half = (T2 - T1) / 2;
+  const mid = (g.t1 + g.t2) / 2, half = (g.t2 - g.t1) / 2;
   const d = (wx - mid) / half;
   return 40 + (142 - 40) * (1 - d * d);
 }
@@ -184,8 +188,9 @@ function bgBridge(cam) {
   ctx.fillStyle = '#ffd27a';
   for (let i = 0; i < 4; i++) ctx.fillRect(fx + 9 + i * 7, 200, 3, 3);
   ctx.fillStyle = '#fff'; ctx.fillRect(fx + 20, 189, 2, 4);
+  const g = bridgeGeom();
   // towers
-  for (const twx of [T1, T2]) {
+  for (const twx of [g.t1, g.t2]) {
     const x = Math.round(twx - cam) - 28;
     if (x < -70 || x > W + 20) continue;
     ctx.fillStyle = '#4a4456'; ctx.fillRect(x, 34, 56, 174);
@@ -198,23 +203,23 @@ function bgBridge(cam) {
   }
   // main cables + suspenders + lights
   ctx.fillStyle = '#6b7280';
-  for (let wx = 4320; wx <= 5660; wx += 4) {
+  for (let wx = g.a; wx <= g.b; wx += 4) {
     const x = Math.round(wx - cam);
     if (x < -4 || x > W + 4) continue;
-    const y = Math.round(bridgeCableY(wx));
+    const y = Math.round(bridgeCableY(wx, g));
     ctx.fillRect(x, y, 4, 2);
   }
   ctx.fillStyle = '#4a5263';
-  for (let wx = 4344; wx <= 5640; wx += 24) {
+  for (let wx = g.a + 24; wx <= g.b - 12; wx += 24) {
     const x = Math.round(wx - cam);
     if (x < -2 || x > W + 2) continue;
-    const y = Math.round(bridgeCableY(wx));
+    const y = Math.round(bridgeCableY(wx, g));
     if (y < 200) ctx.fillRect(x, y, 1, 200 - y);
   }
-  for (let wx = 4344; wx <= 5640; wx += 48) {
+  for (let wx = g.a + 24; wx <= g.b - 12; wx += 48) {
     const x = Math.round(wx - cam);
     if (x < -2 || x > W + 2) continue;
-    const y = Math.round(bridgeCableY(wx));
+    const y = Math.round(bridgeCableY(wx, g));
     ctx.fillStyle = ((tick >> 4) + (wx >> 5)) % 2 ? '#ffd27a' : '#b89045';
     ctx.fillRect(x - 1, y - 2, 2, 2);
   }
@@ -347,17 +352,7 @@ const bgChinatown  = cam => bgMarket(cam, true);
 
 const BGS = [bgManhattan, bgPark, bgSubway, bgBridge, bgTimesSquare, bgWallStreet, bgLittleItaly, bgChinatown];
 
-// ---------- street decorations (visual only, placed by tile) ----------
-const DECOR = [
-  { t: 'cart',     tx: 14 },   // Manhattan hot dog cart
-  { t: 'taxi',     tx: 20 },   // parked yellow cab
-  { t: 'stsign',   tx: 68 },   // Broadway / W 42 St
-  { t: 'pizza',    tx: 74 },   // dollar-slice joint
-  { t: 'parksign', tx: 94 },   // Central Park entrance
-  { t: 'fountain', tx: 146 },  // park fountain
-  { t: 'bksign',   tx: 338 },  // Welcome to Brooklyn
-];
-
+// ---------- street decorations (visual only, levels place them by tile) ----------
 function drawDecorItem(t, x) {
   if (t === 'cart') {
     ctx.fillStyle = '#caa84a'; ctx.fillRect(x + 13, 166, 2, 20);
@@ -456,7 +451,7 @@ function drawDecorItem(t, x) {
 }
 
 function drawDecor(cam) {
-  for (const d of (level.decor || DECOR)) {
+  for (const d of (level.decor || [])) {
     const x = Math.round(d.tx * TILE - cam);
     if (x < -130 || x > W + 40) continue;
     drawDecorItem(d.t, x);
