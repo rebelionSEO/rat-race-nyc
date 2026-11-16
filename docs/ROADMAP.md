@@ -3,6 +3,12 @@
 *From single-run prototype to a full 10-level NYC platformer.*
 *Status: planning. Nothing here is built yet — this is the blueprint we work from.*
 
+> **Update, November 2026: version 2.0.** The game was rebuilt from scratch on a new engine
+> (1280×720, code-drawn vector art, wall-jump / dash / tail whip, hearts, vertical levels).
+> Times Square is the first level on it. The level list, enemy designs and trademark rules below
+> still stand as the plan; the "Technical Plan" and "Build Phases" sections describe the old 8-bit
+> engine, which now lives in `legacy/`. Section 9 (Art 2.0) is superseded by the code-drawn art.
+
 ---
 
 ## 1. Vision
